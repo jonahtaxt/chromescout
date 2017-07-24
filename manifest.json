@@ -1,17 +1,32 @@
 {
-  "manifest_version": 2,
-
-  "name": "Chromescout",
-  "description": "A simple extension to get a quick glimpse of a Nightscout site",
-  "version": "1.0",
-
-  "browser_action": {
-    "default_icon": "logo2.png",
-    "default_popup": "popup.html",
-	"default_title": "Click here!"
-  },
-  "permissions": [
-    "activeTab",
-    "https://ajax.googleapis.com/"
-  ]
+	"manifest_version": 2,
+	"name": "Chromescout",
+	"description": "A simple extension to get a quick glimpse of a Nightscout site",
+	"background": {
+		"scripts": [
+			"background.js"
+		],
+		"persistent": false
+	},
+	"version": "1.0",
+	"browser_action": {
+		"name": "ChromeScout",
+		"default_icon": "logo2.png",
+		"default_title": "ChromeScout",
+		"default_popup": "popup.html"
+	},
+	"permissions": [
+		"activeTab",
+		"https://ajax.googleapis.com/",
+		"https://dpmns.azurewebsites.net/"
+	],
+	"content_scripts": [{
+		"js": [
+			"jquery.min.js",
+			"background.js"
+		],
+		"matches": [
+			"<all_urls>"
+		]
+	}]
 }
