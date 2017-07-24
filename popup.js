@@ -1,101 +1,69 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+var currentSystemStatus;
+var thresholds;
 
-/**
- * Get the current URL.
- *
- * @param {function(string)} callback - called when the URL of the current tab
- *   is found.
- */
-function getCurrentTabUrl(callback) {
-  // Query filter to be passed to chrome.tabs.query - see
-  // https://developer.chrome.com/extensions/tabs#method-query
-  var queryInfo = {
-    active: true,
-    currentWindow: true
-  };
-
-  chrome.tabs.query(queryInfo, function(tabs) {
-    // chrome.tabs.query invokes the callback with a list of tabs that match the
-    // query. When the popup is opened, there is certainly a window and at least
-    // one tab, so we can safely assume that |tabs| is a non-empty array.
-    // A window can only have one active tab at a time, so the array consists of
-    // exactly one tab.
-    var tab = tabs[0];
-
-    // A tab is a plain object that provides information about the tab.
-    // See https://developer.chrome.com/extensions/tabs#type-Tab
-    var url = tab.url;
-
-    // tab.url is only available if the "activeTab" permission is declared.
-    // If you want to see the URL of other tabs (e.g. after removing active:true
-    // from |queryInfo|), then the "tabs" permission is required to see their
-    // "url" properties.
-    console.assert(typeof url == 'string', 'tab.url should be a string');
-
-    callback(url);
-  });
-
-  // Most methods of the Chrome extension APIs are asynchronous. This means that
-  // you CANNOT do something like this:
-  //
-  // var url;
-  // chrome.tabs.query(queryInfo, function(tabs) {
-  //   url = tabs[0].url;
-  // });
-  // alert(url); // Shows "undefined", because chrome.tabs.query is async.
+function sleep(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * @param {string} searchTerm - Search term for Google Image search.
- * @param {function(string,number,number)} callback - Called when an image has
- *   been found. The callback gets the URL, width and height of the image.
- * @param {function(string)} errorCallback - Called when the image is not found.
- *   The callback gets a string that describes the failure reason.
- */
-function getImageUrl(searchTerm, callback, errorCallback) {
-  // Google image search - 100 searches per day.
-  // https://developers.google.com/image-search/
-  var searchUrl = 'https://ajax.googleapis.com/ajax/services/search/images' +
-    '?v=1.0&q=' + encodeURIComponent(searchTerm);
-  var x = new XMLHttpRequest();
-  x.open('GET', searchUrl);
-  // The Google image search API responds with JSON, so let Chrome parse it.
-  x.responseType = 'json';
-  x.onload = function() {
-    // Parse and process the response from Google Image Search.
-    var response = x.response;
-    if (!response || !response.responseData || !response.responseData.results ||
-        response.responseData.results.length === 0) {
-      errorCallback('No response from Google Image search!');
-      return;
-    }
-    var firstResult = response.responseData.results[0];
-    // Take the thumbnail instead of the full image to get an approximately
-    // consistent image size.
-    var imageUrl = firstResult.tbUrl;
-    var width = parseInt(firstResult.tbWidth);
-    var height = parseInt(firstResult.tbHeight);
-    console.assert(
-        typeof imageUrl == 'string' && !isNaN(width) && !isNaN(height),
-        'Unexpected respose from the Google Image Search API!');
-    callback(imageUrl, width, height);
-  };
-  x.onerror = function() {
-    errorCallback('Network error.');
-  };
-  x.send();
+function calculateSleepTime(remainingPoints) {
+	if(remainingPoints <= 25) {
+		return 50;
+	} else if (remainingPoints <= 10) {
+		return 200;
+	} else {
+		return 10;
+	}
 }
 
-function renderStatus(statusText) {
-  document.getElementById('status').textContent = statusText;
+function setBGReadingColor(currentBGPoint) {
+	var currentColor = '';
+	
+	if(currentBGPoint <= thresholds.bgLow || currentBGPoint >= thresholds.bgHigh) {
+		currentColor = '#F92121';
+	} else if ((currentBGPoint > thresholds.bgLow && currentBGPoint <= thresholds.bgTargetBottom) ||
+	(currentBGPoint >= thresholds.bgTargetTop && currentBGPoint < thresholds.bgHigh)) {
+		currentColor = 'yellow';
+	} else {
+		currentColor = '#4cff00';
+	}
+	return currentColor;
+}
+
+async function animateLastBGReading(bgReadingSpan, bgReading){
+	bgReadingSpan.text('0');
+	for(var x = 0; x <= bgReading; x++) {
+		bgReadingSpan.text(x.toString());
+		bgReadingSpan.css('color', setBGReadingColor(x));		
+		await sleep(calculateSleepTime(bgReading - x));
+	}
+}
+
+function getLastBGReading() {
+	var lastBGReadingSpan = $("#lastBGReading");
+	var trendSpan = $("#trend");
+	$.get('https://dpmns.azurewebsites.net/api/v1/entries.json?count=2', function(data){
+		var lastBGReadingInfo = data[0];
+		var priorBGReadingInfo = data[1];
+		var currentBGReading = lastBGReadingInfo.sgv;
+		var trend = lastBGReadingInfo.sgv - priorBGReadingInfo.sgv;
+		animateLastBGReading(lastBGReadingSpan, currentBGReading);
+		if(trend < 0) {
+			trendSpan.text(trend.toString());			
+		} else {
+			trendSpan.text('+ ' + trend.toString());
+		}
+	});
+}
+
+function getSystemStatus() {
+	$.get('https://dpmns.azurewebsites.net/api/v1/status.json', function(data) {
+		currentSystemStatus = data;
+		thresholds = currentSystemStatus.settings.thresholds;
+		$("#userTitle").text(currentSystemStatus.settings.customTitle);
+		getLastBGReading();
+	});
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-	var lastBGReading = $("#lastBGReading");
-	$.get('https://dpmns.azurewebsites.net/api/v1/entries.json?count=1', function(data){
-		var currentBGReading = data[0].sgv;
-		lastBGReading.text(currentBGReading);
-	});
+	getSystemStatus();
 });

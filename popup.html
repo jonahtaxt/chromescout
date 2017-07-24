@@ -11,14 +11,36 @@
       body {
         font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
         font-size: 100%;
+		background-color: #000000;
+		color: white;
       }
-      #status {
-        /* avoid an excessively wide status text */
-        white-space: pre;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        max-width: 400px;
-      }
+	  #container {
+		width: 300px;
+		height: 300px;
+		padding: 0;
+	  }
+	  #bgReading {
+		width: 300px;
+		height: 250px;
+		text-align: center;
+	  }
+	    #bgReading #userTitle {
+			display: block;
+			font-size: 22px;
+			text-align: left;
+		}
+		#bgReading #lastBGReading {
+			font-size: 150px;
+			display: block;
+		}
+		#bgReading #trend {
+			display: block;
+			font-size: 26px;
+		}
+	  #footer {
+		width: 300px;
+		height: 50px;
+	  }
     </style>
 
     <!--
@@ -31,7 +53,22 @@
     <script src="popup.js"></script>
   </head>
   <body>
-    <span id="lastBGReading">Ultima lectura</span>
+	<div id="container">
+		<div id="bgReading">
+			<span id="userTitle"></span>
+			<span id="lastBGReading"></span>
+			<span id="trend"></span>
+		</div>
+		<div id="footer">
+			<div id="openAPSPill">
+			</div>
+			<div id="buttonRow">
+				<button id="settings" value="settings" />
+				<button id="addTreatment" value="treatment" />
+				<button id="goToSite" value"open NS Site" />
+			</div>
+		</div>
+	</div>
   </body>
 </html>
 
