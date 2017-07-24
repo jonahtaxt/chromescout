@@ -20,7 +20,7 @@ function setBGReadingColor(currentBGPoint) {
 	var currentColor = '';
 	
 	if(currentBGPoint <= thresholds.bgLow || currentBGPoint >= thresholds.bgHigh) {
-		currentColor = '#F92121';
+		currentColor = 'red';
 	} else if ((currentBGPoint > thresholds.bgLow && currentBGPoint <= thresholds.bgTargetBottom) ||
 	(currentBGPoint >= thresholds.bgTargetTop && currentBGPoint < thresholds.bgHigh)) {
 		currentColor = 'yellow';
