@@ -54,18 +54,21 @@
   </head>
   <body>
 	<div id="container">
-		<div id="bgReading">
-			<span id="userTitle"></span>
-			<span id="lastBGReading"></span>
-			<span id="trend"></span>
+		<div id="setupExtension" style="display: block">
+			<span>Please enter your Nightscout website Url on the <a href="chrome://extensions" style="color:white;">extension options</a></span>
 		</div>
-		<div id="footer">
-			<div id="openAPSPill">
+		<div id="bgData" style="display: none">
+			<div id="bgReading">
+				<span id="userTitle"></span>
+				<span id="lastBGReading"></span>
+				<span id="trend"></span>
 			</div>
-			<div id="buttonRow">
-				<button id="settings" value="settings" />
-				<button id="addTreatment" value="treatment" />
-				<button id="goToSite" value"open NS Site" />
+			<div id="footer">
+				<div id="openAPSPill">
+				</div>
+				<div id="buttonRow">
+					<a href="#">Open NS Site</a>
+				</div>
 			</div>
 		</div>
 	</div>

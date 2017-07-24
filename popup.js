@@ -1,5 +1,6 @@
 var currentSystemStatus;
 var thresholds;
+var nsUrl;
 
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
@@ -41,7 +42,7 @@ async function animateLastBGReading(bgReadingSpan, bgReading){
 function getLastBGReading() {
 	var lastBGReadingSpan = $("#lastBGReading");
 	var trendSpan = $("#trend");
-	$.get('https://dpmns.azurewebsites.net/api/v1/entries.json?count=2', function(data){
+	$.get(nsUrl + 'api/v1/entries.json?count=2', function(data){
 		var lastBGReadingInfo = data[0];
 		var priorBGReadingInfo = data[1];
 		var currentBGReading = lastBGReadingInfo.sgv;
@@ -56,7 +57,17 @@ function getLastBGReading() {
 }
 
 function getSystemStatus() {
-	$.get('https://dpmns.azurewebsites.net/api/v1/status.json', function(data) {
+	var backgroundVars = chrome.extension.getBackgroundPage();
+	nsUrl = backgroundVars.nsUrl;
+	if(nsUrl === 'https://<yoursite>.azurewebsites.net/') {
+		$('#setupExtension').css('display','block');
+		$('#bgData').css('display','none');
+		return;
+	} else {
+		$('#setupExtension').css('display','none');
+		$('#bgData').css('display','block');
+	}
+	$.get(nsUrl + 'api/v1/status.json', function(data) {
 		currentSystemStatus = data;
 		thresholds = currentSystemStatus.settings.thresholds;
 		$("#userTitle").text(currentSystemStatus.settings.customTitle);

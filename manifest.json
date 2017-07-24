@@ -1,14 +1,24 @@
 {
 	"manifest_version": 2,
 	"name": "Chromescout",
+	"version": "1.0",
 	"description": "A simple extension to get a quick glimpse of a Nightscout site",
+	"minimum_chrome_version" : "40",
+	"icons": {
+		"16": "nslogo16.png",
+		"48": "nslogo48.png",
+		"128": "nslogo128.png"
+	},
 	"background": {
 		"scripts": [
 			"background.js"
 		],
 		"persistent": false
 	},
-	"version": "1.0",
+	"options_ui" : {
+		"page" : "options.html",
+		"chrome_style": true
+	},
 	"browser_action": {
 		"name": "ChromeScout",
 		"default_icon": "logo2.png",
@@ -17,6 +27,8 @@
 	},
 	"permissions": [
 		"activeTab",
+		"storage",
+		"webNavigation",
 		"https://ajax.googleapis.com/",
 		"https://dpmns.azurewebsites.net/"
 	],
