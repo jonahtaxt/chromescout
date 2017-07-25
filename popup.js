@@ -47,6 +47,7 @@ function initialize() {
         var setupExtensionDiv = $('#setupExtension');
         var retrieveDataDiv = $('#retrieveData');
         var bgDataDiv = $('#bgData');
+        var userTitleDiv = $('#userTitle');
 
         if (backgroundVars !== null) {
             if (backgroundVars.nsUrl === 'https://<yoursite>.azurewebsites.net/') {
@@ -67,6 +68,7 @@ function initialize() {
                 retrieveDataDiv.hide();
                 bgDataDiv.show();
 
+                userTitleDiv.text(backgroundVars.currentSystemStatus.settings.customTitle);
                 var lastBGReadingSpan = $("#lastBGReading");
                 var trendSpan = $("#trend");
                 animateLastBGReading(lastBGReadingSpan, backgroundVars.currentBGReading);
