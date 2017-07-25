@@ -11,7 +11,8 @@
 	},
 	"background": {
 		"scripts": [
-			"background.js"
+      "background.js",
+      "jquery.min.js"
 		],
 		"persistent": false
 	},
@@ -27,8 +28,8 @@
 	},
 	"permissions": [
 		"activeTab",
-		"storage",
-		"webNavigation",
+    "storage",
+    "alarms",
 		"https://ajax.googleapis.com/",
 		"https://dpmns.azurewebsites.net/"
 	],

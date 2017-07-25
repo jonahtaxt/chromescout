@@ -5,42 +5,48 @@
  value "popup.html".
  -->
 <html>
-  <head>
+<head>
     <title>Getting Started Extension's Popup</title>
-	<style>
-      body {
-        font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
-        font-size: 100%;
-		background-color: #000000;
-		color: white;
-      }
-	  #container {
-		width: 300px;
-		height: 300px;
-		padding: 0;
-	  }
-	  #bgReading {
-		width: 300px;
-		height: 250px;
-		text-align: center;
-	  }
-	    #bgReading #userTitle {
-			display: block;
-			font-size: 22px;
-			text-align: left;
-		}
-		#bgReading #lastBGReading {
-			font-size: 150px;
-			display: block;
-		}
-		#bgReading #trend {
-			display: block;
-			font-size: 26px;
-		}
-	  #footer {
-		width: 300px;
-		height: 50px;
-	  }
+    <style>
+        body {
+            font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+            font-size: 100%;
+            background-color: #000000;
+            color: white;
+        }
+
+        #container {
+            width: 300px;
+            height: 300px;
+            padding: 0;
+        }
+
+        #bgReading {
+            width: 300px;
+            height: 250px;
+            text-align: center;
+        }
+
+            #bgReading #userTitle {
+                display: block;
+                font-size: 22px;
+                text-align: left;
+            }
+
+            #bgReading #lastBGReading {
+                font-size: 150px;
+                display: block;
+            }
+
+            #bgReading #trend {
+                display: block;
+                font-size: 26px;
+            }
+
+        #footer {
+            width: 300px;
+            height: 50px;
+        }
     </style>
 
     <!--
@@ -49,29 +55,31 @@
       -
       - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
      -->
-	<script src="jquery.min.js"></script>
+    <script src="jquery.min.js"></script>
     <script src="popup.js"></script>
-  </head>
-  <body>
-	<div id="container">
-		<div id="setupExtension" style="display: block">
-			<span>Please enter your Nightscout website Url on the <a href="chrome://extensions" style="color:white;">extension options</a></span>
-		</div>
-		<div id="bgData" style="display: none">
-			<div id="bgReading">
-				<span id="userTitle"></span>
-				<span id="lastBGReading"></span>
-				<span id="trend"></span>
-			</div>
-			<div id="footer">
-				<div id="openAPSPill">
-				</div>
-				<div id="buttonRow">
-					<a href="#">Open NS Site</a>
-				</div>
-			</div>
-		</div>
-	</div>
-  </body>
+</head>
+<body>
+    <div id="container">
+        <div id="setupExtension" style="display: block">
+            <span>Please enter your Nightscout website Url on the <a href="chrome://extensions" style="color:white;">extension options</a></span>
+        </div>
+        <div id="retrieveData" style="display:none;">
+            <span>Please wait while we retrieve the latest NS data...</span>
+        </div>
+        <div id="bgData" style="display: none">
+            <div id="bgReading">
+                <span id="userTitle"></span>
+                <span id="lastBGReading"></span>
+                <span id="trend"></span>
+            </div>
+            <div id="footer">
+                <div id="openAPSPill">
+                </div>
+                <div id="buttonRow">
+                    <a href="#">Open NS Site</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
 </html>
-
