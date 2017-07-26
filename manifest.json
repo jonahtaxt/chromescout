@@ -1,45 +1,36 @@
 {
-	"manifest_version": 2,
-	"name": "Chromescout",
-	"version": "1.0",
-	"description": "A simple extension to get a quick glimpse of a Nightscout site",
-	"minimum_chrome_version" : "40",
-	"icons": {
-		"16": "nslogo16.png",
-		"48": "nslogo48.png",
-		"128": "nslogo128.png"
-	},
-	"background": {
-		"scripts": [
-      "background.js",
-      "jquery.min.js"
-		],
-		"persistent": false
-	},
-	"options_ui" : {
-		"page" : "options.html",
-		"chrome_style": true
-	},
-	"browser_action": {
-		"name": "ChromeScout",
-		"default_icon": "logo2.png",
-		"default_title": "ChromeScout",
-		"default_popup": "popup.html"
-	},
-	"permissions": [
-		"activeTab",
+  "manifest_version": 2,
+  "name": "Chromescout",
+  "version": "1.0",
+  "description": "A simple extension to get a quick glimpse of a Nightscout site",
+  "minimum_chrome_version": "40",
+  "icons": {
+    "16": "img/nslogo16.png",
+    "48": "img/nslogo48.png",
+    "128": "img/nslogo128.png"
+  },
+  "background": {
+    "scripts": [
+      "js/background.js",
+      "js/jquery.min.js"
+    ],
+    "persistent": false
+  },
+  "options_ui": {
+    "page": "html/options.html",
+    "chrome_style": true
+  },
+  "browser_action": {
+    "name": "ChromeScout",
+    "default_icon": "img/logo2.png",
+    "default_title": "ChromeScout",
+    "default_popup": "html/popup.html"
+  },
+  "permissions": [
+    "activeTab",
     "storage",
     "alarms",
-		"https://ajax.googleapis.com/",
-		"https://dpmns.azurewebsites.net/"
-	],
-	"content_scripts": [{
-		"js": [
-			"jquery.min.js",
-			"background.js"
-		],
-		"matches": [
-			"<all_urls>"
-		]
-	}]
+    "https://ajax.googleapis.com/",
+    "https://dpmns.azurewebsites.net/"
+  ]
 }
