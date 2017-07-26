@@ -48,6 +48,7 @@ function initialize() {
         var retrieveDataDiv = $('#retrieveData');
         var bgDataDiv = $('#bgData');
         var userTitleDiv = $('#userTitle');
+        var bgUnitsDiv = $('#bgUnits');
 
         if (backgroundVars !== null) {
             if (backgroundVars.nsUrl === 'https://<yoursite>.azurewebsites.net/') {
@@ -69,7 +70,8 @@ function initialize() {
                 bgDataDiv.show();
 
                 userTitleDiv.text(backgroundVars.currentSystemStatus.settings.customTitle);
-                var lastBGReadingSpan = $("#lastBGReading");
+                bgUnitsDiv.text(backgroundVars.currentSystemStatus.settings.units);
+                var lastBGReadingSpan = $("#bgPoints");
                 var trendSpan = $("#trend");
                 animateLastBGReading(lastBGReadingSpan, backgroundVars.currentBGReading);
                 if (backgroundVars.trend < 0) {

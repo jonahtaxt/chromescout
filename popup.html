@@ -38,6 +38,21 @@
                 display: block;
             }
 
+                #bgReading #lastBGReading #bgPoints {
+                    width: 215px;
+                    display: inline-block;
+                    float: left;
+                }
+
+                #bgReading #lastBGReading #bgUnits {
+                    width: 75px;
+                    font-size: 32px;
+                    display: inline-block;
+                    float: left;
+                }
+
+                #bgReading #lastBGReading
+
             #bgReading #trend {
                 display: block;
                 font-size: 26px;
@@ -69,7 +84,10 @@
         <div id="bgData" style="display: none">
             <div id="bgReading">
                 <span id="userTitle"></span>
-                <span id="lastBGReading"></span>
+                <span id="lastBGReading">
+                    <span id="bgPoints"></span>
+                    <span id="bgUnits"></span>
+                </span>
                 <span id="trend"></span>
             </div>
             <div id="footer">
