@@ -1,0 +1,95 @@
+<!doctype html>
+<!--
+ This page is shown when the extension button is clicked, because the
+ "browser_action" field in manifest.json contains the "default_popup" key with
+ value "popup.html".
+ -->
+<html>
+<head>
+    <title>Getting Started Extension's Popup</title>
+    <style>
+        body {
+            font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+            font-size: 100%;
+            background-color: #000000;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            width: 310px;
+            height: 350px;
+            padding: 0;
+        }
+
+        #bgData {
+            height: 250px;
+            width: 100%;
+            padding: 0;
+        }
+
+            #bgData #userTitle {
+                font-size: 22px;
+                text-align: left;
+                width: 100%;
+                padding-left: 10px;
+                padding-top: 10px;
+            }
+
+            #bgData #bgReading {
+                width: 100%;    
+            }
+
+            #bgData #bgReading {
+                font-size: 150px;
+                text-align: center;
+            }
+
+                #bgData #bgReading #bgPoints {
+                    width: 100%;
+                    height: 166px;
+                    margin-top: -30px;
+                }
+
+                #bgData #bgReading #bgUnits,
+                #bgData #bgReading #trend {
+                    font-size: 24px;
+                    text-align: center;
+                }
+
+            #bgData #footer {
+                clear: both;
+                width: 300px;
+                height: 50px;
+            }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="setupExtension" style="display: block">
+            <span>Please enter your Nightscout website Url on the <a href="chrome://extensions" style="color:white;">extension options</a></span>
+        </div>
+        <div id="retrieveData" style="display:none;">
+            <span>Please wait while we retrieve the latest NS data...</span>
+        </div>
+        <div id="bgData" style="display: none">
+            <div id="userTitle"></div>
+            <div id="bgReading">
+                <div id="bgPoints"></div>
+                <div id="bgUnits"></div>
+                <div id="trend"></div>
+            </div>
+            <div id="footer" style="display: none;">
+                <div id="openAPSPill">
+                </div>
+                <div id="buttonRow">
+                    <a href="#">Open NS Site</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../js/jquery.min.js"></script>
+    <script src="../js/popup.js"></script>
+</body>
+</html>
