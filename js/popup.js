@@ -49,6 +49,7 @@ function initialize() {
         var bgDataDiv = $('#bgData');
         var userTitleDiv = $('#userTitle');
         var bgUnitsDiv = $('#bgUnits');
+        var timeAndDeltaDiv = $('#timeAndDelta');
 
         if (backgroundVars !== null) {
             if (backgroundVars.nsUrl === 'https://<yoursite>.azurewebsites.net/') {
@@ -71,14 +72,21 @@ function initialize() {
 
                 userTitleDiv.text(backgroundVars.currentSystemStatus.settings.customTitle);
                 bgUnitsDiv.text(backgroundVars.currentSystemStatus.settings.units);
-                var lastBGReadingSpan = $("#bgPoints");
-                var trendSpan = $("#trend");
+                var lastBGReadingSpan = $("#bgShow");
+                var timeAndDeltaSpan = $("#timeAndDelta");
+
                 animateLastBGReading(lastBGReadingSpan, backgroundVars.currentBGReading);
-                if (backgroundVars.trend < 0) {
-                    trendSpan.text(backgroundVars.trend.toString());
+
+                var timeAndDeltaText = 'Time: ' + new Date(backgroundVars.lastBGReadingInfo.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+
+                if (backgroundVars.delta < 0) {
+                    timeAndDeltaText += ' Delta: ' + backgroundVars.delta.toString();
                 } else {
-                    trendSpan.text('+ ' + backgroundVars.trend.toString());
+                    timeAndDeltaText += ' Delta: + ' + backgroundVars.delta.toString();
                 }
+
+                timeAndDeltaDiv.text(timeAndDeltaText);
             }
         }
     });
