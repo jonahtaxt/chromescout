@@ -6,7 +6,7 @@ function getLastBGReading() {
         nsVars.lastBGReadingInfo = data[0];
         nsVars.priorBGReadingInfo = data[1];
         nsVars.currentBGReading = nsVars.lastBGReadingInfo.sgv;
-        nsVars.trend = nsVars.lastBGReadingInfo.sgv - nsVars.priorBGReadingInfo.sgv;
+        nsVars.delta = nsVars.lastBGReadingInfo.sgv - nsVars.priorBGReadingInfo.sgv;
         nsVars.dataLoaded = true;
 
         chrome.storage.sync.set({ "extensionVars": nsVars });
@@ -21,7 +21,7 @@ function initialize() {
         lastBGReadingInfo: null,
         priorBGReadingInfo: null,
         currentBGReading: null,
-        trend: null,
+        delta: null,
         dataLoaded: false
     };
 }

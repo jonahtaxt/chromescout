@@ -13,8 +13,7 @@
     "scripts": [
       "js/background.js",
       "js/jquery.min.js"
-    ],
-    "persistent": false
+    ]
   },
   "options_ui": {
     "page": "html/options.html",
