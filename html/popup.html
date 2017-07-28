@@ -69,6 +69,31 @@
                 clear: both;
                 width: 100%;
             }
+			
+				#bgData #footer #buttons {
+					border-top: 3px #ffffff dashed;
+					height: 35px;
+					margin-left: 10px;
+					margin-right: 10px;
+					margin-top: 10px;
+				}
+			
+					#bgData #footer #openFullSite {
+						background: url('../img/logo2.png') no-repeat;
+						background-position: center;
+						background-color: white;
+						border: 0;
+						border-radius: 50%;
+						width: 40px;
+						height: 40px;
+						float: right;
+						margin-top: 10px;
+						margin-bottom: 10px;
+					}
+					
+					#bgData #footer #openFullSite:hover {
+						cursor: pointer;
+					}
     </style>
 </head>
 <body>
@@ -88,12 +113,10 @@
                 </div>
                 <div id="timeAndDelta"></div>
             </div>
-            <div id="footer" style="display: none;">
-                <div id="openAPSPill">
-                </div>
-                <div id="buttonRow">
-                    <a href="#">Open NS Site</a>
-                </div>
+            <div id="footer">
+				<div id="buttons">
+					<button type="button" id="openFullSite" title="Open full NS Site"></button>
+				</div>
             </div>
         </div>
     </div>
