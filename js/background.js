@@ -54,7 +54,8 @@ function initialize() {
 	});
 }
 
-chrome.alarms.clear(nsGetDataAlarmName, function(wasCleared) {
+document.addEventListener('DOMContentLoaded', function(){
+	chrome.alarms.clear(nsGetDataAlarmName, function(wasCleared) {
 	
 	chrome.alarms.create(nsGetDataAlarmName, { delayInMinutes: 5, periodInMinutes: 5 });
 	chrome.alarms.onAlarm.addListener(function (alarm) {
@@ -66,4 +67,5 @@ chrome.alarms.clear(nsGetDataAlarmName, function(wasCleared) {
 			});
 		}
 	});
+});
 });
