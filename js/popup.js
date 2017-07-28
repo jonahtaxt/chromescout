@@ -44,6 +44,13 @@ function openFullSite(e) {
 	chrome.tabs.create(tab);
 }
 
+function openOptions(e) {
+	var tab = {
+		url: 'chrome://extensions/?options=' + chrome.runtime.id
+	};
+	chrome.tabs.create(tab);
+}
+
 function initialize() {
 
     chrome.storage.sync.get({
@@ -58,6 +65,7 @@ function initialize() {
         var bgUnitsDiv = $('#bgUnits');
         var timeAndDeltaDiv = $('#timeAndDelta');
 		var openFullSiteButton = $('#openFullSite');
+		var openSettingsButton = $('#openSettings');
 
         if (backgroundVars !== null) {
             if (backgroundVars.nsUrl === 'https://<yoursite>.azurewebsites.net/') {
@@ -76,6 +84,7 @@ function initialize() {
             else {
 				
 				openFullSiteButton.click(openFullSite);
+				openSettingsButton.click(openOptions);
 				
                 setupExtensionDiv.hide();
                 retrieveDataDiv.hide();
