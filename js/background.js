@@ -1,5 +1,5 @@
 var nsVars = {};
-const nsGetDataAlarmName = 'refreshNSData';
+var nsGetDataAlarmName = 'refreshNSData';
 
 function getLastBGReading() {
     $.get(nsVars.nsUrl + 'api/v1/entries.json?count=2', function (data) {
@@ -10,6 +10,18 @@ function getLastBGReading() {
         nsVars.dataLoaded = true;
 
         chrome.storage.sync.set({ "extensionVars": nsVars });
+		
+		var newIconTitle = nsVars.lastBGReadingInfo.sgv.toString() + ' (';
+		
+		if(nsVars.delta >= 0) {
+			newIconTitle += '+ ' + nsVars.delta.toString();
+		} else {
+			newIconTitle += nsVars.delta.toString();
+		}
+		
+		newIconTitle += ')';
+		
+		chrome.browserAction.setTitle({title: newIconTitle});
     });
 }
 
