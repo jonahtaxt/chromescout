@@ -25,6 +25,17 @@ function getLastBGReading() {
     });
 }
 
+function getCurrentStatus(items) {
+	if (!(items.nightscoutUrl === 'https://<yoursite>.azurewebsites.net/')) {
+		nsVars.nsUrl = items.nightscoutUrl;
+		$.get(nsVars.nsUrl + 'api/v1/status.json', function (data) {
+			nsVars.currentSystemStatus = data;
+			nsVars.thresholds = nsVars.currentSystemStatus.settings.thresholds;
+			getLastBGReading();
+		});
+	}
+}
+
 function initialize() {
     nsVars = {
         nsUrl: null,
@@ -36,36 +47,23 @@ function initialize() {
         delta: null,
         dataLoaded: false
     };
+	chrome.storage.sync.get({ 
+        "nightscoutUrl": 'https://<yoursite>.azurewebsites.net/' 
+    }, function(items) {
+		getCurrentStatus(items);
+	});
 }
 
-chrome.alarms.onAlarm.addListener(function (alarm) {
-    if (alarm.name === nsGetDataAlarmName) {
-        chrome.storage.sync.get({
-            "nightscoutUrl": "https://<yoursite>.azurewebsites.net/"
-        }, function (items) {
-            initialize();
-            if (!(items.nightscoutUrl === 'https://<yoursite>.azurewebsites.net/')) {
-                nsVars.nsUrl = items.nightscoutUrl;
-                $.get(nsVars.nsUrl + 'api/v1/status.json', function (data) {
-                    nsVars.currentSystemStatus = data;
-                    nsVars.thresholds = nsVars.currentSystemStatus.settings.thresholds;
-                    getLastBGReading();
-                });
-            }
-        });
-    }
-});
-
-chrome.storage.sync.get({
-    "nightscoutUrl": "https://<yoursite>.azurewebsites.net/"
-}, function (items) {
-    initialize();
-    if (!(items.nightscoutUrl === 'https://<yoursite>.azurewebsites.net/')) {
-        nsVars.nsUrl = items.nightscoutUrl;
-        $.get(nsVars.nsUrl + 'api/v1/status.json', function (data) {
-            nsVars.currentSystemStatus = data;
-            nsVars.thresholds = nsVars.currentSystemStatus.settings.thresholds;
-            getLastBGReading();
-        });
-    }
+chrome.alarms.clear(nsGetDataAlarmName, function(wasCleared) {
+	
+	chrome.alarms.create(nsGetDataAlarmName, { delayInMinutes: 5, periodInMinutes: 5 });
+	chrome.alarms.onAlarm.addListener(function (alarm) {
+		if (alarm.name === nsGetDataAlarmName) {
+			chrome.storage.sync.get({
+				"nightscoutUrl": "https://<yoursite>.azurewebsites.net/"
+			}, function (items) {
+				initialize();
+			});
+		}
+	});
 });

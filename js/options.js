@@ -15,17 +15,12 @@ function save_options() {
     chrome.storage.sync.set({
         "nightscoutUrl": nsUrl
     }, function () {
-        chrome.alarms.clear(nsGetDataAlarmName,
-            function(wasCleared) {
-                if (wasCleared) {
-                    chrome.alarms.create(nsGetDataAlarmName, { delayInMinutes: 5, periodInMinutes: 5 });
-                }
-                document.getElementById('clear').disabled = false;
-                statusDiv.textContent = 'Options saved.';
-                setTimeout(function () {
-                    statusDiv.textContent = '';
-                }, 1500);
-            });
+        chrome.alarms.create(nsGetDataAlarmName, { delayInMinutes: 5, periodInMinutes: 5 });
+		var status = document.getElementById('status');
+		status.textContent = 'Options saved.';
+		setTimeout(function () {
+			status.textContent = '';
+		}, 1500);
     });
 }
 
@@ -44,18 +39,13 @@ function restore_options() {
 
 function clear_options() {
     chrome.storage.sync.clear(function () {
-        chrome.alarms.clear(nsGetDataAlarmName,
-            function(wasCleared) {
-                if (wasCleared) {
-                    chrome.alarms.create(nsGetDataAlarmName, { delayInMinutes: 5, periodInMinutes: 5 });
-                }
-                document.getElementById('nsUrl').value = 'https://<yoursite>.azurewebsites.net/';
-                var status = document.getElementById('status');
-                status.textContent = 'Options cleared.';
-                setTimeout(function () {
-                    status.textContent = '';
-                }, 1500);
-            });
+        chrome.alarms.create(nsGetDataAlarmName, { delayInMinutes: 5, periodInMinutes: 5 });
+		document.getElementById('nsUrl').value = 'https://<yoursite>.azurewebsites.net/';
+		var status = document.getElementById('status');
+		status.textContent = 'Options cleared.';
+		setTimeout(function () {
+			status.textContent = '';
+		}, 1500);
     });
 }
 
