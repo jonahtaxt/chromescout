@@ -29,6 +29,7 @@
     "activeTab",
     "storage",
     "alarms",
+	"tabs",
     "https://ajax.googleapis.com/",
     "https://dpmns.azurewebsites.net/"
   ]

@@ -37,6 +37,13 @@ async function animateLastBGReading(bgReadingSpan, bgReading) {
     }
 }
 
+function openFullSite(e) {
+	var tab = {
+		url: backgroundVars.nsUrl
+	};
+	chrome.tabs.create(tab);
+}
+
 function initialize() {
 
     chrome.storage.sync.get({
@@ -50,6 +57,7 @@ function initialize() {
         var userTitleDiv = $('#userTitle');
         var bgUnitsDiv = $('#bgUnits');
         var timeAndDeltaDiv = $('#timeAndDelta');
+		var openFullSiteButton = $('#openFullSite');
 
         if (backgroundVars !== null) {
             if (backgroundVars.nsUrl === 'https://<yoursite>.azurewebsites.net/') {
@@ -66,6 +74,9 @@ function initialize() {
                 return;
             }
             else {
+				
+				openFullSiteButton.click(openFullSite);
+				
                 setupExtensionDiv.hide();
                 retrieveDataDiv.hide();
                 bgDataDiv.show();
