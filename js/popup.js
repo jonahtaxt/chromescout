@@ -44,6 +44,13 @@ function openFullSite(e) {
 	chrome.tabs.create(tab);
 }
 
+function openOptions(e) {
+	var tab = {
+		url: 'chrome://extensions/?options=' + chrome.runtime.id
+	};
+	chrome.tabs.create(tab);
+}
+
 function initialize() {
 
     chrome.storage.sync.get({
@@ -58,8 +65,16 @@ function initialize() {
         var bgUnitsDiv = $('#bgUnits');
         var timeAndDeltaDiv = $('#timeAndDelta');
 		var openFullSiteButton = $('#openFullSite');
+		var openSettingsButton = $('#openSettings');
 
         if (backgroundVars !== null) {
+			if (!backgroundVars.dataLoaded && backgroundVars.nsUrl !== 'https://<yoursite>.azurewebsites.net/') {
+                setupExtensionDiv.hide();
+                retrieveDataDiv.show();
+                bgDataDiv.hide();
+                return;
+            }
+			
             if (backgroundVars.nsUrl === 'https://<yoursite>.azurewebsites.net/') {
                 setupExtensionDiv.show();
                 retrieveDataDiv.hide();
@@ -67,15 +82,10 @@ function initialize() {
                 return;
             }
 
-            if (!backgroundVars.dataLoaded) {
-                setupExtensionDiv.hide();
-                retrieveDataDiv.show();
-                bgDataDiv.hide();
-                return;
-            }
             else {
 				
 				openFullSiteButton.click(openFullSite);
+				openSettingsButton.click(openOptions);
 				
                 setupExtensionDiv.hide();
                 retrieveDataDiv.hide();

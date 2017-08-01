@@ -13,7 +13,8 @@
     "scripts": [
       "js/background.js",
       "js/jquery.min.js"
-    ]
+    ],
+	"persistent": true
   },
   "options_ui": {
     "page": "html/options.html",
@@ -21,7 +22,7 @@
   },
   "browser_action": {
     "name": "ChromeScout",
-    "default_icon": "img/logo2.png",
+    "default_icon": "img/logo.png",
     "default_title": "ChromeScout",
     "default_popup": "html/popup.html"
   },
@@ -30,7 +31,7 @@
     "storage",
     "alarms",
 	"tabs",
-    "https://ajax.googleapis.com/",
-    "https://dpmns.azurewebsites.net/"
-  ]
+    "https://ajax.googleapis.com/"
+  ],
+  "optional_permissions": [ "tabs", "http://*/*","https://*/*" ]
 }

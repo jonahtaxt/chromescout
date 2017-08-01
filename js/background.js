@@ -1,6 +1,20 @@
 var nsVars = {};
 var nsGetDataAlarmName = 'refreshNSData';
 
+function setBGReadingIconColor(currentBGPoint) {
+    var currentIconColor = '';
+
+    if (currentBGPoint <= nsVars.thresholds.bgLow || currentBGPoint >= nsVars.thresholds.bgHigh) {
+        currentIconColor = 'logored.png';
+    } else if ((currentBGPoint > nsVars.thresholds.bgLow && currentBGPoint <= nsVars.thresholds.bgTargetBottom) ||
+        (currentBGPoint >= nsVars.thresholds.bgTargetTop && currentBGPoint < nsVars.thresholds.bgHigh)) {
+        currentIconColor = 'logoyellow.png';
+    } else {
+        currentIconColor = 'logo.png';
+    }
+    return currentIconColor;
+}
+
 function getLastBGReading() {
     $.get(nsVars.nsUrl + 'api/v1/entries.json?count=2', function (data) {
         nsVars.lastBGReadingInfo = data[0];
@@ -22,7 +36,24 @@ function getLastBGReading() {
 		newIconTitle += ')';
 		
 		chrome.browserAction.setTitle({title: newIconTitle});
+		
+		var icon = {
+			path: '../img/' + setBGReadingIconColor(nsVars.currentBGReading)
+		};
+		
+		chrome.browserAction.setIcon(icon);
     });
+}
+
+function getCurrentStatus(items) {
+	if (!(items.nightscoutUrl === 'https://<yoursite>.azurewebsites.net/')) {
+		nsVars.nsUrl = items.nightscoutUrl;
+		$.get(nsVars.nsUrl + 'api/v1/status.json', function (data) {
+			nsVars.currentSystemStatus = data;
+			nsVars.thresholds = nsVars.currentSystemStatus.settings.thresholds;
+			getLastBGReading();
+		});
+	}
 }
 
 function initialize() {
@@ -36,36 +67,25 @@ function initialize() {
         delta: null,
         dataLoaded: false
     };
+	chrome.storage.sync.get({ 
+        "nightscoutUrl": 'https://<yoursite>.azurewebsites.net/' 
+    }, function(items) {
+		getCurrentStatus(items);
+	});
 }
 
-chrome.alarms.onAlarm.addListener(function (alarm) {
-    if (alarm.name === nsGetDataAlarmName) {
-        chrome.storage.sync.get({
-            "nightscoutUrl": "https://<yoursite>.azurewebsites.net/"
-        }, function (items) {
-            initialize();
-            if (!(items.nightscoutUrl === 'https://<yoursite>.azurewebsites.net/')) {
-                nsVars.nsUrl = items.nightscoutUrl;
-                $.get(nsVars.nsUrl + 'api/v1/status.json', function (data) {
-                    nsVars.currentSystemStatus = data;
-                    nsVars.thresholds = nsVars.currentSystemStatus.settings.thresholds;
-                    getLastBGReading();
-                });
-            }
-        });
-    }
+document.addEventListener('DOMContentLoaded', function(){
+	chrome.alarms.clear(nsGetDataAlarmName, function(wasCleared) {
+		chrome.alarms.create(nsGetDataAlarmName, { delayInMinutes: 5, periodInMinutes: 5 });
+	});
 });
 
-chrome.storage.sync.get({
-    "nightscoutUrl": "https://<yoursite>.azurewebsites.net/"
-}, function (items) {
-    initialize();
-    if (!(items.nightscoutUrl === 'https://<yoursite>.azurewebsites.net/')) {
-        nsVars.nsUrl = items.nightscoutUrl;
-        $.get(nsVars.nsUrl + 'api/v1/status.json', function (data) {
-            nsVars.currentSystemStatus = data;
-            nsVars.thresholds = nsVars.currentSystemStatus.settings.thresholds;
-            getLastBGReading();
-        });
-    }
+chrome.alarms.onAlarm.addListener(function (alarm) {
+	if (alarm.name === nsGetDataAlarmName) {
+		chrome.storage.sync.get({
+			"nightscoutUrl": "https://<yoursite>.azurewebsites.net/"
+		}, function (items) {
+			initialize();
+		});
+	}
 });
