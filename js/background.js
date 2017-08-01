@@ -3,102 +3,135 @@ var self = this;
 self.nsVars = {};
 self.nsGetDataAlarmName = 'refreshNSData';
 
+self.setLastAndPriorBGReadings = function(data) {
+    self.nsVars.lastBGReadingInfo = data[0];
+    self.nsVars.priorBGReadingInfo = data[1];
+    self.nsVars.dataLoaded = true;
+    chrome.storage.sync.set({
+        "extensionVars": self.nsVars
+    });
+};
+
+self.setNewIconTitle = function() {
+    var newIconTitle = self.nsVars.lastBGReadingInfo.sgv.toString() + ' (';
+    var delta = self.nsVars.lastBGReadingInfo.sgv - self.nsVars.priorBGReadingInfo.sgv;
+    if (delta >= 0) {
+        newIconTitle += '+ ' + delta.toString();
+    } else {
+        newIconTitle += delta.toString();
+    }
+    newIconTitle += ')';
+    chrome.browserAction.setTitle({
+        title: newIconTitle
+    });
+};
+
 self.setBGReadingIconColor = function (currentBGPoint) {
-	var currentIconColor = '';
+    var currentIconColor = '';
 
-	if (currentBGPoint <= self.nsVars.thresholds.bgLow || currentBGPoint >= self.nsVars.thresholds.bgHigh) {
-		currentIconColor = 'logored.png';
-	} else if ((currentBGPoint > self.nsVars.thresholds.bgLow && currentBGPoint <= self.nsVars.thresholds.bgTargetBottom) ||
-		(currentBGPoint >= self.nsVars.thresholds.bgTargetTop && currentBGPoint < self.nsVars.thresholds.bgHigh)) {
-		currentIconColor = 'logoyellow.png';
-	} else {
-		currentIconColor = 'logo.png';
-	}
-	return currentIconColor;
+    if (currentBGPoint <= self.nsVars.nsData.settings.thresholds.bgLow || currentBGPoint >= self.nsVars.nsData.settings.thresholds.bgHigh) {
+        currentIconColor = 'logored.png';
+    } else if ((currentBGPoint > self.nsVars.nsData.settings.thresholds.bgLow && currentBGPoint <= self.nsVars.nsData.settings.thresholds.bgTargetBottom) ||
+		(currentBGPoint >= self.nsVars.nsData.settings.thresholds.bgTargetTop && currentBGPoint < self.nsVars.nsData.settings.thresholds.bgHigh)) {
+        currentIconColor = 'logoyellow.png';
+    } else {
+        currentIconColor = 'logo.png';
+    }
+
+    chrome.browserAction.setIcon({
+        path: '../img/' + currentIconColor
+    });
 };
 
-self.setIconTitle = function () {
-	var newIconTitle = self.nsVars.lastBGReadingInfo.sgv.toString() + ' (';
+self.getLastAndPriorBGInformation = function (resolve, reject) {
+    var promise = new Promise(function (resolve, reject) {
+        $.get(self.nsVars.nsUrl + 'api/v1/entries.json?count=2')
+            .done(function (data) {
+                self.setLastAndPriorBGReadings(data);
+                self.setNewIconTitle();
+                self.setBGReadingIconColor(self.nsVars.lastBGReadingInfo.sgv);
+                resolve();
+            })
+        .fail(function (errorMsg) {
+            reject(errorMsg);
+        });
+    });
 
-	if (self.nsVars.delta >= 0) {
-		newIconTitle += '+ ' + self.nsVars.delta.toString();
-	} else {
-		newIconTitle += self.nsVars.delta.toString();
-	}
-
-	newIconTitle += ')';
-
-	chrome.browserAction.setTitle({
-		title: newIconTitle
-	});
+    return promise;
 };
 
-self.getLastBGReading = function () {
-	$.get(self.nsVars.nsUrl + 'api/v1/entries.json?count=2', function (data) {
-		self.nsVars.lastBGReadingInfo = data[0];
-		self.nsVars.priorBGReadingInfo = data[1];
-		self.nsVars.currentBGReading = self.nsVars.lastBGReadingInfo.sgv;
-		self.nsVars.delta = self.nsVars.lastBGReadingInfo.sgv - self.nsVars.priorBGReadingInfo.sgv;
-		self.nsVars.dataLoaded = true;
+self.getNSCurrentStatus = function () {
+    var promise = new Promise(function (resolve, reject) {
+        $.get(self.nsVars.nsUrl + 'api/v1/status.json')
+        .done(function (data) {
+            self.nsVars.nsData = data;
+            resolve();
+        })
+        .fail(function (errorMsg) {
+            reject(errorMsg);
+        });
+    });
 
-		chrome.storage.sync.set({
-			"extensionVars": self.nsVars
-		});
-
-		self.setIconTitle();
-
-		chrome.browserAction.setIcon({
-			path: '../img/' + setBGReadingIconColor(self.nsVars.currentBGReading)
-		});
-	});
+    return promise;
 };
 
-self.getCurrentStatus = function (items) {
-	if (!(items.nightscoutUrl === 'https://<yoursite>.azurewebsites.net/')) {
-		self.nsVars.nsUrl = items.nightscoutUrl;
-		$.get(self.nsVars.nsUrl + 'api/v1/status.json', function (data) {
-			self.nsVars.currentSystemStatus = data;
-			self.nsVars.thresholds = self.nsVars.currentSystemStatus.settings.thresholds;
-			self.getLastBGReading();
-		});
-	}
+self.getBGData = function () {
+    var promise = new Promise(function (resolve, reject) {
+        self.clearNSData();
+        chrome.storage.sync.get({
+            "nightscoutUrl": "https://<yoursite>.azurewebsites.net/"
+        }, function (extensionConfiguration) {
+            if (extensionConfiguration.nightscoutUrl !== "https://<yoursite>.azurewebsites.net/") {
+                self.nsVars.nsUrl = extensionConfiguration.nightscoutUrl;
+                self.getNSCurrentStatus().then(function () {
+                    self.getLastAndPriorBGInformation().then(function () {
+                        resolve();
+                    }, function (errorMsg) {
+                        reject(errorMsg);
+                    });
+                }, function (errorMsg) {
+                    reject(errorMsg);
+                });
+            } else {
+                reject("No configuration found");
+            }
+        });
+    });
+
+    return promise;
 };
 
-self.initialize = function () {
-	self.nsVars = {
-		nsUrl: null,
-		currentSystemStatus: null,
-		thresholds: null,
-		lastBGReadingInfo: null,
-		priorBGReadingInfo: null,
-		currentBGReading: null,
-		delta: null,
-		dataLoaded: false
-	};
-
-	chrome.storage.sync.get({
-		"nightscoutUrl": "https://<yoursite>.azurewebsites.net/"
-	}, function (items) {
-		if (items.nightscoutUrl !== "https://<yoursite>.azurewebsites.net/") {
-			self.getCurrentStatus(items);
-		}
-	});
+self.clearNSData = function () {
+    self.nsVars = {
+        nsUrl: null,
+        nsData: null,
+        lastBGReadingInfo: null,
+        priorBGReadingInfo: null,
+        dataLoaded: false
+    };
 };
 
-document.addEventListener('DOMContentLoaded', function () {
-	chrome.alarms.clear(nsGetDataAlarmName, function (wasCleared) {
+self.DOMContentLoaded = function () {
+    chrome.alarms.clear(nsGetDataAlarmName, function (wasCleared) {
 
-		chrome.alarms.create(nsGetDataAlarmName, {
-			delayInMinutes: 5,
-			periodInMinutes: 5
-		});
+        chrome.alarms.create(nsGetDataAlarmName, {
+            delayInMinutes: 5,
+            periodInMinutes: 5
+        });
 
-		chrome.alarms.onAlarm.addListener(function (alarm) {
-			if (alarm.name === nsGetDataAlarmName) {
-				self.initialize();
-			}
-		});
+        self.getBGData().then(function () {
+            chrome.alarms.onAlarm.addListener(function (alarm) {
+                if (alarm.name === nsGetDataAlarmName) {
+                    self.getBGData()
+                        .catch(function (errorMsg) {
+                            console.log(errorMsg);
+                        });
+                }
+            });
+        }, function (errorMsg) {
+            alert(errorMsg);
+        });
+    });
+};
 
-		self.initialize();
-	});
-});
+document.addEventListener('DOMContentLoaded', self.DOMContentLoaded);
