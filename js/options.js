@@ -8,20 +8,33 @@ function save_options() {
         statusDiv.textContent = 'Please enter your Nightscout website Url';
         setTimeout(function () {
             statusDiv.textContent = '';
-        }, 1500);
+        }, 2000);
         return;
     }
 
-    chrome.storage.sync.set({
-        "nightscoutUrl": nsUrl
-    }, function () {
-        chrome.alarms.create(nsGetDataAlarmName, { delayInMinutes: 5, periodInMinutes: 5 });
-		var status = document.getElementById('status');
-		status.textContent = 'Options saved.';
-		setTimeout(function () {
-			status.textContent = '';
-		}, 1500);
-    });
+	chrome.permissions.request({
+		permissions: ['tabs'],
+		origins: [nsUrl]
+	}, function(granted) {
+		if(granted){
+			chrome.storage.sync.set({
+				"nightscoutUrl": nsUrl
+			}, function () {
+				chrome.alarms.create(nsGetDataAlarmName, { delayInMinutes: 5, periodInMinutes: 5 });
+				var status = document.getElementById('status');
+				status.textContent = 'Options saved.';
+				setTimeout(function () {
+					status.textContent = '';
+				}, 2000);
+			});
+		} else {
+			var status = document.getElementById('status');
+			status.textContent = 'Please grant permissions to get access to your NS site';
+			setTimeout(function() {
+				status.textContent='';
+			}, 2000);
+		}
+	});
 }
 
 function restore_options() {
@@ -45,7 +58,7 @@ function clear_options() {
 		status.textContent = 'Options cleared.';
 		setTimeout(function () {
 			status.textContent = '';
-		}, 1500);
+		}, 2000);
     });
 }
 

@@ -68,6 +68,13 @@ function initialize() {
 		var openSettingsButton = $('#openSettings');
 
         if (backgroundVars !== null) {
+			if (!backgroundVars.dataLoaded && backgroundVars.nsUrl !== 'https://<yoursite>.azurewebsites.net/') {
+                setupExtensionDiv.hide();
+                retrieveDataDiv.show();
+                bgDataDiv.hide();
+                return;
+            }
+			
             if (backgroundVars.nsUrl === 'https://<yoursite>.azurewebsites.net/') {
                 setupExtensionDiv.show();
                 retrieveDataDiv.hide();
@@ -75,12 +82,6 @@ function initialize() {
                 return;
             }
 
-            if (!backgroundVars.dataLoaded) {
-                setupExtensionDiv.hide();
-                retrieveDataDiv.show();
-                bgDataDiv.hide();
-                return;
-            }
             else {
 				
 				openFullSiteButton.click(openFullSite);
