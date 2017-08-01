@@ -75,12 +75,14 @@ self.initialize = function () {
 		delta: null,
 		dataLoaded: false
 	};
-	
+
 	chrome.storage.sync.get({
-			"nightscoutUrl": "https://<yoursite>.azurewebsites.net/"
-		}, function (items) {
+		"nightscoutUrl": "https://<yoursite>.azurewebsites.net/"
+	}, function (items) {
+		if (items.nightscoutUrl !== "https://<yoursite>.azurewebsites.net/") {
 			self.getCurrentStatus(items);
-		});
+		}
+	});
 };
 
 document.addEventListener('DOMContentLoaded', function () {
