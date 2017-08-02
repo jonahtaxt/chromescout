@@ -1,91 +1,137 @@
-var nsVars = {};
-var nsGetDataAlarmName = 'refreshNSData';
+var self = this;
 
-function setBGReadingIconColor(currentBGPoint) {
+self.nsVars = {};
+self.nsGetDataAlarmName = 'refreshNSData';
+
+self.setLastAndPriorBGReadings = function(data) {
+    self.nsVars.lastBGReadingInfo = data[0];
+    self.nsVars.priorBGReadingInfo = data[1];
+    self.nsVars.dataLoaded = true;
+    chrome.storage.sync.set({
+        "extensionVars": self.nsVars
+    });
+};
+
+self.setNewIconTitle = function() {
+    var newIconTitle = self.nsVars.lastBGReadingInfo.sgv.toString() + ' (';
+    var delta = self.nsVars.lastBGReadingInfo.sgv - self.nsVars.priorBGReadingInfo.sgv;
+    if (delta >= 0) {
+        newIconTitle += '+ ' + delta.toString();
+    } else {
+        newIconTitle += delta.toString();
+    }
+    newIconTitle += ')';
+    chrome.browserAction.setTitle({
+        title: newIconTitle
+    });
+};
+
+self.setBGReadingIconColor = function (currentBGPoint) {
     var currentIconColor = '';
 
-    if (currentBGPoint <= nsVars.thresholds.bgLow || currentBGPoint >= nsVars.thresholds.bgHigh) {
+    if (currentBGPoint <= self.nsVars.nsData.settings.thresholds.bgLow || currentBGPoint >= self.nsVars.nsData.settings.thresholds.bgHigh) {
         currentIconColor = 'logored.png';
-    } else if ((currentBGPoint > nsVars.thresholds.bgLow && currentBGPoint <= nsVars.thresholds.bgTargetBottom) ||
-        (currentBGPoint >= nsVars.thresholds.bgTargetTop && currentBGPoint < nsVars.thresholds.bgHigh)) {
+    } else if ((currentBGPoint > self.nsVars.nsData.settings.thresholds.bgLow && currentBGPoint <= self.nsVars.nsData.settings.thresholds.bgTargetBottom) ||
+		(currentBGPoint >= self.nsVars.nsData.settings.thresholds.bgTargetTop && currentBGPoint < self.nsVars.nsData.settings.thresholds.bgHigh)) {
         currentIconColor = 'logoyellow.png';
     } else {
         currentIconColor = 'logo.png';
     }
-    return currentIconColor;
-}
 
-function getLastBGReading() {
-    $.get(nsVars.nsUrl + 'api/v1/entries.json?count=2', function (data) {
-        nsVars.lastBGReadingInfo = data[0];
-        nsVars.priorBGReadingInfo = data[1];
-        nsVars.currentBGReading = nsVars.lastBGReadingInfo.sgv;
-        nsVars.delta = nsVars.lastBGReadingInfo.sgv - nsVars.priorBGReadingInfo.sgv;
-        nsVars.dataLoaded = true;
-
-        chrome.storage.sync.set({ "extensionVars": nsVars });
-		
-		var newIconTitle = nsVars.lastBGReadingInfo.sgv.toString() + ' (';
-		
-		if(nsVars.delta >= 0) {
-			newIconTitle += '+ ' + nsVars.delta.toString();
-		} else {
-			newIconTitle += nsVars.delta.toString();
-		}
-		
-		newIconTitle += ')';
-		
-		chrome.browserAction.setTitle({title: newIconTitle});
-		
-		var icon = {
-			path: '../img/' + setBGReadingIconColor(nsVars.currentBGReading)
-		};
-		
-		chrome.browserAction.setIcon(icon);
+    chrome.browserAction.setIcon({
+        path: '../img/' + currentIconColor
     });
-}
+};
 
-function getCurrentStatus(items) {
-	if (!(items.nightscoutUrl === 'https://<yoursite>.azurewebsites.net/')) {
-		nsVars.nsUrl = items.nightscoutUrl;
-		$.get(nsVars.nsUrl + 'api/v1/status.json', function (data) {
-			nsVars.currentSystemStatus = data;
-			nsVars.thresholds = nsVars.currentSystemStatus.settings.thresholds;
-			getLastBGReading();
-		});
-	}
-}
+self.getLastAndPriorBGInformation = function (resolve, reject) {
+    var promise = new Promise(function (resolve, reject) {
+        $.get(self.nsVars.nsUrl + 'api/v1/entries.json?count=2')
+            .done(function (data) {
+                self.setLastAndPriorBGReadings(data);
+                self.setNewIconTitle();
+                self.setBGReadingIconColor(self.nsVars.lastBGReadingInfo.sgv);
+                resolve();
+            })
+        .fail(function (errorMsg) {
+            reject(errorMsg);
+        });
+    });
 
-function initialize() {
-    nsVars = {
+    return promise;
+};
+
+self.getNSCurrentStatus = function () {
+    var promise = new Promise(function (resolve, reject) {
+        $.get(self.nsVars.nsUrl + 'api/v1/status.json')
+        .done(function (data) {
+            self.nsVars.nsData = data;
+            resolve();
+        })
+        .fail(function (errorMsg) {
+            reject(errorMsg);
+        });
+    });
+
+    return promise;
+};
+
+self.getBGData = function () {
+    var promise = new Promise(function (resolve, reject) {
+        self.clearNSData();
+        chrome.storage.sync.get({
+            "nightscoutUrl": "https://<yoursite>.azurewebsites.net/"
+        }, function (extensionConfiguration) {
+            if (extensionConfiguration.nightscoutUrl !== "https://<yoursite>.azurewebsites.net/") {
+                self.nsVars.nsUrl = extensionConfiguration.nightscoutUrl;
+                self.getNSCurrentStatus().then(function () {
+                    self.getLastAndPriorBGInformation().then(function () {
+                        resolve();
+                    }, function (errorMsg) {
+                        reject(errorMsg);
+                    });
+                }, function (errorMsg) {
+                    reject(errorMsg);
+                });
+            } else {
+                reject("No configuration found");
+            }
+        });
+    });
+
+    return promise;
+};
+
+self.clearNSData = function () {
+    self.nsVars = {
         nsUrl: null,
-        currentSystemStatus: null,
-        thresholds: null,
+        nsData: null,
         lastBGReadingInfo: null,
         priorBGReadingInfo: null,
-        currentBGReading: null,
-        delta: null,
         dataLoaded: false
     };
-	chrome.storage.sync.get({ 
-        "nightscoutUrl": 'https://<yoursite>.azurewebsites.net/' 
-    }, function(items) {
-		getCurrentStatus(items);
-	});
-}
+};
 
-document.addEventListener('DOMContentLoaded', function(){
-	chrome.alarms.clear(nsGetDataAlarmName, function(wasCleared) {
-		chrome.alarms.create(nsGetDataAlarmName, { delayInMinutes: 5, periodInMinutes: 5 });
-	});
-});
+self.DOMContentLoaded = function () {
+    chrome.alarms.clear(nsGetDataAlarmName, function (wasCleared) {
 
-chrome.alarms.onAlarm.addListener(function (alarm) {
-	if (alarm.name === nsGetDataAlarmName) {
-		chrome.storage.sync.get({
-			"nightscoutUrl": "https://<yoursite>.azurewebsites.net/"
-		}, function (items) {
-			initialize();
-		});
-	}
-});
+        chrome.alarms.create(nsGetDataAlarmName, {
+            delayInMinutes: 5,
+            periodInMinutes: 5
+        });
+
+        self.getBGData().then(function () {
+            chrome.alarms.onAlarm.addListener(function (alarm) {
+                if (alarm.name === nsGetDataAlarmName) {
+                    self.getBGData()
+                        .catch(function (errorMsg) {
+                            console.log(errorMsg);
+                        });
+                }
+            });
+        }, function (errorMsg) {
+            alert(errorMsg);
+        });
+    });
+};
+
+document.addEventListener('DOMContentLoaded', self.DOMContentLoaded);

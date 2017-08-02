@@ -1,10 +1,20 @@
-var backgroundVars = null;
+var self = this;
+self.nsVars = null;
 
-function sleep(ms) {
+self.sleep = function(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-}
+};
 
-function calculateSleepTime(remainingPoints) {
+self.animateLastBGReading = async function(bgReadingSpan, bgReading) {
+    bgReadingSpan.text('0');
+    for (var x = 0; x <= bgReading; x++) {
+        bgReadingSpan.text(x.toString());
+        bgReadingSpan.css('color', setBGReadingColor(x));
+        await self.sleep(calculateSleepTime(bgReading - x));
+    }
+};
+
+self.calculateSleepTime = function(remainingPoints) {
     if (remainingPoints <= 25) {
         return 50;
     } else if (remainingPoints <= 10) {
@@ -12,107 +22,108 @@ function calculateSleepTime(remainingPoints) {
     } else {
         return 10;
     }
-}
+};
 
-function setBGReadingColor(currentBGPoint) {
+self.setBGReadingColor = function(currentBGPoint) {
     var currentColor = '';
 
-    if (currentBGPoint <= backgroundVars.thresholds.bgLow || currentBGPoint >= backgroundVars.thresholds.bgHigh) {
+    if (currentBGPoint <= self.nsVars.nsData.settings.thresholds.bgLow || currentBGPoint >= self.nsVars.nsData.settings.thresholds.bgHigh) {
         currentColor = 'red';
-    } else if ((currentBGPoint > backgroundVars.thresholds.bgLow && currentBGPoint <= backgroundVars.thresholds.bgTargetBottom) ||
-        (currentBGPoint >= backgroundVars.thresholds.bgTargetTop && currentBGPoint < backgroundVars.thresholds.bgHigh)) {
+    } else if ((currentBGPoint > self.nsVars.nsData.settings.thresholds.bgLow &&
+            currentBGPoint <= self.nsVars.nsData.settings.thresholds.bgTargetBottom) ||
+        (currentBGPoint >= self.nsVars.nsData.settings.thresholds.bgTargetTop &&
+            currentBGPoint < self.nsVars.nsData.settings.thresholds.bgHigh)) {
         currentColor = 'yellow';
     } else {
         currentColor = '#4cff00';
     }
     return currentColor;
-}
+};
 
-async function animateLastBGReading(bgReadingSpan, bgReading) {
-    bgReadingSpan.text('0');
-    for (var x = 0; x <= bgReading; x++) {
-        bgReadingSpan.text(x.toString());
-        bgReadingSpan.css('color', setBGReadingColor(x));
-        await sleep(calculateSleepTime(bgReading - x));
+self.openFullSite = function(e) {
+    chrome.tabs.create({
+        url: self.nsVars.nsUrl
+    });
+};
+
+self.openOptions = function(e) {
+    chrome.tabs.create({
+        url: 'chrome://extensions/?options=' + chrome.runtime.id
+    });
+};
+
+self.getDOMElementReferences = function() {
+    self.setupExtensionDiv = $('#setupExtension');
+    self.retrieveDataDiv = $('#retrieveData');
+    self.bgDataDiv = $('#bgData');
+    self.userTitleDiv = $('#userTitle');
+    self.bgUnitsDiv = $('#bgUnits');
+    self.timeAndDeltaDiv = $('#timeAndDelta');
+    self.openFullSiteButton = $('#openFullSite');
+    self.openSettingsButton = $('#openSettings');
+    self.lastBGReadingSpan = $("#bgShow");
+    self.timeAndDeltaSpan = $("#timeAndDelta");
+};
+
+self.setTimeAndDeltaText = function() {
+    var timeAndDeltaText = 'Time: ' +
+        new Date(self.nsVars.lastBGReadingInfo.date).toLocaleTimeString([],
+            { hour: '2-digit', minute: '2-digit' });
+
+    var delta = self.nsVars.lastBGReadingInfo.sgv - self.nsVars.priorBGReadingInfo.sgv;
+
+    if (delta < 0) {
+        timeAndDeltaText += ' Delta: ' + delta.toString();
+    } else {
+        timeAndDeltaText += ' Delta: + ' + delta.toString();
     }
-}
 
-function openFullSite(e) {
-	var tab = {
-		url: backgroundVars.nsUrl
-	};
-	chrome.tabs.create(tab);
-}
+    self.timeAndDeltaDiv.text(timeAndDeltaText);
+};
 
-function openOptions(e) {
-	var tab = {
-		url: 'chrome://extensions/?options=' + chrome.runtime.id
-	};
-	chrome.tabs.create(tab);
-}
-
-function initialize() {
+self.initialize = function() {
 
     chrome.storage.sync.get({
-        "extensionVars": null
-    }, function (items) {
-        backgroundVars = items.extensionVars;
+            "extensionVars": null
+        },
+        function(items) {
+            self.nsVars = items.extensionVars;
 
-        var setupExtensionDiv = $('#setupExtension');
-        var retrieveDataDiv = $('#retrieveData');
-        var bgDataDiv = $('#bgData');
-        var userTitleDiv = $('#userTitle');
-        var bgUnitsDiv = $('#bgUnits');
-        var timeAndDeltaDiv = $('#timeAndDelta');
-		var openFullSiteButton = $('#openFullSite');
-		var openSettingsButton = $('#openSettings');
+            self.getDOMElementReferences();
 
-        if (backgroundVars !== null) {
-			if (!backgroundVars.dataLoaded && backgroundVars.nsUrl !== 'https://<yoursite>.azurewebsites.net/') {
-                setupExtensionDiv.hide();
-                retrieveDataDiv.show();
-                bgDataDiv.hide();
-                return;
-            }
-			
-            if (backgroundVars.nsUrl === 'https://<yoursite>.azurewebsites.net/') {
-                setupExtensionDiv.show();
-                retrieveDataDiv.hide();
-                bgDataDiv.hide();
-                return;
-            }
+            if (self.nsVars !== null) {
 
-            else {
-				
-				openFullSiteButton.click(openFullSite);
-				openSettingsButton.click(openOptions);
-				
-                setupExtensionDiv.hide();
-                retrieveDataDiv.hide();
-                bgDataDiv.show();
-
-                userTitleDiv.text(backgroundVars.currentSystemStatus.settings.customTitle);
-                bgUnitsDiv.text(backgroundVars.currentSystemStatus.settings.units);
-                var lastBGReadingSpan = $("#bgShow");
-                var timeAndDeltaSpan = $("#timeAndDelta");
-
-                animateLastBGReading(lastBGReadingSpan, backgroundVars.currentBGReading);
-
-                var timeAndDeltaText = 'Time: ' + new Date(backgroundVars.lastBGReadingInfo.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-
-                if (backgroundVars.delta < 0) {
-                    timeAndDeltaText += ' Delta: ' + backgroundVars.delta.toString();
-                } else {
-                    timeAndDeltaText += ' Delta: + ' + backgroundVars.delta.toString();
+                if (!(self.nsVars.dataLoaded) && (self.nsVars.nsUrl !== 'https://<yoursite>.azurewebsites.net/')) {
+                    self.setupExtensionDiv.hide();
+                    self.retrieveDataDiv.show();
+                    self.bgDataDiv.hide();
+                    return;
                 }
 
-                timeAndDeltaDiv.text(timeAndDeltaText);
+                if (self.nsVars.nsUrl === 'https://<yoursite>.azurewebsites.net/') {
+                    self.setupExtensionDiv.show();
+                    self.retrieveDataDiv.hide();
+                    self.bgDataDiv.hide();
+                    return;
+                }
+
+                self.openFullSiteButton.click(self.openFullSite);
+                self.openSettingsButton.click(self.openOptions);
+
+                self.setupExtensionDiv.hide();
+                self.retrieveDataDiv.hide();
+                self.bgDataDiv.show();
+
+                self.userTitleDiv.text(self.nsVars.nsData.settings.customTitle);
+                self.bgUnitsDiv.text(self.nsVars.nsData.settings.units);
+
+                self.animateLastBGReading(self.lastBGReadingSpan, self.nsVars.lastBGReadingInfo.sgv);
+
+                self.setTimeAndDeltaText();
             }
-        }
-    });
-}
+        });
+};
 
 document.addEventListener('DOMContentLoaded', function () {
-    initialize();
+    self.initialize();
 });
