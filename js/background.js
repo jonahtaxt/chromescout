@@ -111,15 +111,25 @@ self.clearNSData = function () {
     };
 };
 
+self.getNextBGReadingDelay = function() {
+    var lastBGTime = moment(self.nsVars.lastBGReadingInfo.date);
+    var nextBGTime = lastBGTime.clone().add(5, 'minutes');
+    var currentTime = moment(new Date);
+    var delayUntilNextReading = currentTime.diff(nextBGTime, 'minutes');
+
+    return delayUntilNextReading <= 0 ? 1 : delayUntilNextReading;
+}
+
 self.DOMContentLoaded = function () {
     chrome.alarms.clear(nsGetDataAlarmName, function (wasCleared) {
 
-        chrome.alarms.create(nsGetDataAlarmName, {
-            delayInMinutes: 5,
-            periodInMinutes: 5
-        });
-
         self.getBGData().then(function () {
+            
+            chrome.alarms.create(nsGetDataAlarmName, {
+                delayInMinutes: self.getNextBGReadingDelay(),
+                periodInMinutes: 6
+            });
+
             chrome.alarms.onAlarm.addListener(function (alarm) {
                 if (alarm.name === nsGetDataAlarmName) {
                     self.getBGData()
