@@ -1,0 +1,138 @@
+<!doctype html>
+<!--
+ This page is shown when the extension button is clicked, because the
+ "browser_action" field in manifest.json contains the "default_popup" key with
+ value "popup.html".
+ -->
+<html>
+<head>
+    <title>Getting Started Extension's Popup</title>
+    <style>
+        body {
+            font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+            font-size: 100%;
+            background-color: #000000;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            width: 310px;
+            padding: 0;
+        }
+
+        #bgData {
+            width: 100%;
+        }
+
+            #bgData #userTitle {
+                font-size: 22px;
+                text-align: left;
+                padding-left: 10px;
+                padding-top: 10px;
+            }
+
+            #bgData #bgReading {
+                font-size: 130px;
+                text-align: center;
+            }
+
+                #bgData #bgReading #bgShow,
+                #bgData #bgReading #bgUnits {
+                    float: left;
+                }
+
+                #bgData #bgReading #bgShow {
+                    width: 200px;
+                }
+
+                #bgData #bgReading #bgUnits {
+                    width: 100px !important;
+                    margin-left: 10px;
+                    margin-top: 115px;
+                }
+
+                #bgData #bgReading #bgUnits,
+                #bgData #bgReading #timeAndDelta {
+                    color: white;
+                    font-size: 24px;
+                    text-align: center;
+                }
+
+                #bgData #bgReading #timeAndDelta {
+                    clear: both;
+                    font-size: 16px;
+                }
+
+            #bgData #footer {
+                clear: both;
+                width: 100%;
+            }
+			
+				#bgData #footer #buttons {
+					border-top: 3px #ffffff dashed;
+					height: 35px;
+					margin-left: 10px;
+					margin-right: 10px;
+					margin-top: 10px;
+				}
+				
+					#bgData #footer #openSettings {
+						background: url('../img/gear.png') no-repeat;
+						background-size: 24px 24px;
+						margin-right: 10px;
+					}
+					
+					#bgData #footer #openFullSite {
+						background: url('../img/logo2.png') no-repeat;
+					}
+			
+					#bgData #footer #openSettings,
+					#bgData #footer #openFullSite {
+						background-position: center;
+						background-color: white;
+						border: 0;
+						border-radius: 50%;
+						width: 40px;
+						height: 40px;
+						float: right;
+						margin-top: 10px;
+						margin-bottom: 10px;
+					}
+					
+					#bgData #footer #openSettings:hover, 
+					#bgData #footer #openFullSite:hover {
+						cursor: pointer;
+					}
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="setupExtension" style="display: block">
+            <span>Please enter your Nightscout website Url on the <a href="chrome://extensions" style="color:white;">extension options</a></span>
+        </div>
+        <div id="retrieveData" style="display:none;">
+            <span>Please wait while we retrieve the latest NS data...</span>
+        </div>
+        <div id="bgData" style="display: none">
+            <div id="userTitle"></div>
+            <div id="bgReading">
+                <div id="bgShow"></div>
+                <div>
+                    <span id="bgUnits"></span>
+                </div>
+                <div id="timeAndDelta"></div>
+            </div>
+            <div id="footer">
+				<div id="buttons">
+					<button type="button" id="openFullSite" title="Open full NS Site"></button>
+					<button type="button" id="openSettings" title="Open Settings"></button>
+				</div>
+            </div>
+        </div>
+    </div>
+    <script src="../js/jquery.min.js"></script>
+    <script src="../js/popup.js"></script>
+</body>
+</html>
