@@ -12,7 +12,8 @@
   "background": {
     "scripts": [
       "js/background.js",
-      "js/jquery.min.js"
+      "js/jquery.min.js",
+      "js/moment.min.js"
     ],
 	"persistent": true
   },
