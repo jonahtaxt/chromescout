@@ -2,8 +2,12 @@ var self = this;
 
 self.nsVars = {};
 self.nsGetDataAlarmName = 'refreshNSData';
+self.warningAlarm = null;
+self.urgentAlarm = null;
+self.currentAlarm = '';
+self.isAlarmSilenced = false;
 
-self.setLastAndPriorBGReadings = function(data) {
+self.setLastAndPriorBGReadings = function (data) {
     self.nsVars.lastBGReadingInfo = data[0];
     self.nsVars.priorBGReadingInfo = data[1];
     self.nsVars.dataLoaded = true;
@@ -12,7 +16,7 @@ self.setLastAndPriorBGReadings = function(data) {
     });
 };
 
-self.setNewIconTitle = function() {
+self.setNewIconTitle = function () {
     var newIconTitle = self.nsVars.lastBGReadingInfo.sgv.toString() + ' (';
     var delta = self.nsVars.lastBGReadingInfo.sgv - self.nsVars.priorBGReadingInfo.sgv;
     if (delta >= 0) {
@@ -26,17 +30,49 @@ self.setNewIconTitle = function() {
     });
 };
 
+self.fireAlarm = function () {
+    self.urgentAlarm.pause();
+    self.warningAlarm.pause();
+    self.urgentAlarm.load();
+    self.warningAlarm.load();
+
+    if (!self.isAlarmSilenced) {
+        switch (self.currentAlarm) {
+            case "warning":
+                self.warningAlarm.play();
+                break;
+            case "urgent":
+                self.urgentAlarm.play();
+                break;
+            default:
+                break;
+        }
+    }
+};
+
+self.silenceAlarm = function () {
+    self.fireAlarm("none");
+    setTimeout(function () {
+        self.isAlarmSilenced = false;
+    }, 900000);
+};
+
 self.setBGReadingIconColor = function (currentBGPoint) {
     var currentIconColor = '';
 
-    if (currentBGPoint <= self.nsVars.nsData.settings.thresholds.bgLow || currentBGPoint >= self.nsVars.nsData.settings.thresholds.bgHigh) {
+    if (currentBGPoint < self.nsVars.nsData.settings.thresholds.bgLow || currentBGPoint > self.nsVars.nsData.settings.thresholds.bgHigh) {
         currentIconColor = 'logored.png';
-    } else if ((currentBGPoint > self.nsVars.nsData.settings.thresholds.bgLow && currentBGPoint <= self.nsVars.nsData.settings.thresholds.bgTargetBottom) ||
-		(currentBGPoint >= self.nsVars.nsData.settings.thresholds.bgTargetTop && currentBGPoint < self.nsVars.nsData.settings.thresholds.bgHigh)) {
+        self.currentAlarm = "urgent";
+    } else if ((currentBGPoint > self.nsVars.nsData.settings.thresholds.bgLow && currentBGPoint < self.nsVars.nsData.settings.thresholds.bgTargetBottom) ||
+        (currentBGPoint > self.nsVars.nsData.settings.thresholds.bgTargetTop && currentBGPoint < self.nsVars.nsData.settings.thresholds.bgHigh)) {
         currentIconColor = 'logoyellow.png';
+        self.currentAlarm = "warning";
     } else {
         currentIconColor = 'logo.png';
+        self.currentAlarm = "none";
     }
+
+    self.fireAlarm();
 
     chrome.browserAction.setIcon({
         path: '../img/' + currentIconColor
@@ -52,9 +88,9 @@ self.getLastAndPriorBGInformation = function (resolve, reject) {
                 self.setBGReadingIconColor(self.nsVars.lastBGReadingInfo.sgv);
                 resolve();
             })
-        .fail(function (errorMsg) {
-            reject(errorMsg);
-        });
+            .fail(function (errorMsg) {
+                reject(errorMsg);
+            });
     });
 
     return promise;
@@ -63,13 +99,13 @@ self.getLastAndPriorBGInformation = function (resolve, reject) {
 self.getNSCurrentStatus = function () {
     var promise = new Promise(function (resolve, reject) {
         $.get(self.nsVars.nsUrl + 'api/v1/status.json')
-        .done(function (data) {
-            self.nsVars.nsData = data;
-            resolve();
-        })
-        .fail(function (errorMsg) {
-            reject(errorMsg);
-        });
+            .done(function (data) {
+                self.nsVars.nsData = data;
+                resolve();
+            })
+            .fail(function (errorMsg) {
+                reject(errorMsg);
+            });
     });
 
     return promise;
@@ -111,25 +147,38 @@ self.clearNSData = function () {
     };
 };
 
-self.getNextBGReadingDelay = function() {
+self.getNextBGReadingDelay = function () {
     var lastBGTime = moment(self.nsVars.lastBGReadingInfo.date);
     var nextBGTime = lastBGTime.clone().add(5, 'minutes');
     var currentTime = moment(new Date);
     var delayUntilNextReading = currentTime.diff(nextBGTime, 'minutes');
 
     return delayUntilNextReading <= 0 ? 1 : delayUntilNextReading;
-}
+};
+
+self.silenceAlarm = function (request, sender, sendResponse) {
+    if (request.silenceAlarm) {
+        self.silenceAlarm();
+        setTimeout(function () {
+            self.isAlarmSilenced = false;
+        }, 900000);
+        sendResponse({ alarmSilenced: true });
+    }
+};
 
 self.DOMContentLoaded = function () {
-    chrome.alarms.clear(nsGetDataAlarmName, function (wasCleared) {
 
+    self.warningAlarm = new Audio("../sound/alarm.mp3");
+    self.urgentAlarm = new Audio("../sound/alarm2.mp3");
+    self.warningAlarm.loop = true;
+    self.urgentAlarm.loop = true;
+
+    chrome.alarms.clear(nsGetDataAlarmName, function (wasCleared) {
         self.getBGData().then(function () {
-            
             chrome.alarms.create(nsGetDataAlarmName, {
                 delayInMinutes: self.getNextBGReadingDelay(),
                 periodInMinutes: 6
             });
-
             chrome.alarms.onAlarm.addListener(function (alarm) {
                 if (alarm.name === nsGetDataAlarmName) {
                     self.getBGData()
@@ -138,6 +187,7 @@ self.DOMContentLoaded = function () {
                         });
                 }
             });
+            chrome.runtime.onMessage.addListener(self.silenceAlarm);
         }, function (errorMsg) {
             alert(errorMsg);
         });

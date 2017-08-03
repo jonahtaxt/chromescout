@@ -1,11 +1,11 @@
 var self = this;
 self.nsVars = null;
 
-self.sleep = function(ms) {
+self.sleep = function (ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-self.animateLastBGReading = async function(bgReadingSpan, bgReading) {
+self.animateLastBGReading = async function (bgReadingSpan, bgReading) {
     bgReadingSpan.text('0');
     for (var x = 0; x <= bgReading; x++) {
         bgReadingSpan.text(x.toString());
@@ -14,7 +14,7 @@ self.animateLastBGReading = async function(bgReadingSpan, bgReading) {
     }
 };
 
-self.calculateSleepTime = function(remainingPoints) {
+self.calculateSleepTime = function (remainingPoints) {
     if (remainingPoints <= 25) {
         return 50;
     } else if (remainingPoints <= 10) {
@@ -24,14 +24,14 @@ self.calculateSleepTime = function(remainingPoints) {
     }
 };
 
-self.setBGReadingColor = function(currentBGPoint) {
+self.setBGReadingColor = function (currentBGPoint) {
     var currentColor = '';
 
-    if (currentBGPoint <= self.nsVars.nsData.settings.thresholds.bgLow || currentBGPoint >= self.nsVars.nsData.settings.thresholds.bgHigh) {
+    if (currentBGPoint < self.nsVars.nsData.settings.thresholds.bgLow || currentBGPoint > self.nsVars.nsData.settings.thresholds.bgHigh) {
         currentColor = 'red';
     } else if ((currentBGPoint > self.nsVars.nsData.settings.thresholds.bgLow &&
-            currentBGPoint <= self.nsVars.nsData.settings.thresholds.bgTargetBottom) ||
-        (currentBGPoint >= self.nsVars.nsData.settings.thresholds.bgTargetTop &&
+        currentBGPoint < self.nsVars.nsData.settings.thresholds.bgTargetBottom) ||
+        (currentBGPoint > self.nsVars.nsData.settings.thresholds.bgTargetTop &&
             currentBGPoint < self.nsVars.nsData.settings.thresholds.bgHigh)) {
         currentColor = 'yellow';
     } else {
@@ -40,19 +40,28 @@ self.setBGReadingColor = function(currentBGPoint) {
     return currentColor;
 };
 
-self.openFullSite = function(e) {
+self.openFullSite = function (e) {
     chrome.tabs.create({
         url: self.nsVars.nsUrl
     });
 };
 
-self.openOptions = function(e) {
+self.openOptions = function (e) {
     chrome.tabs.create({
         url: 'chrome://extensions/?options=' + chrome.runtime.id
     });
 };
 
-self.getDOMElementReferences = function() {
+self.silenceAlarm = function (e) {
+    chrome.runtime.sendMessage({ silenceAlarm: true }, function (response) {
+        if (response.alarmSilenced) {
+            silenceAlarm.css('background', 'url(\'../img/alarm.png\') no-repeat');
+            silenceAlarm.attr('disabled', 'disabled');
+        }
+    });
+};
+
+self.getDOMElementReferences = function () {
     self.setupExtensionDiv = $('#setupExtension');
     self.retrieveDataDiv = $('#retrieveData');
     self.bgDataDiv = $('#bgData');
@@ -61,11 +70,12 @@ self.getDOMElementReferences = function() {
     self.timeAndDeltaDiv = $('#timeAndDelta');
     self.openFullSiteButton = $('#openFullSite');
     self.openSettingsButton = $('#openSettings');
+    self.silenceAlarmButton = $('#silenceAlarm');
     self.lastBGReadingSpan = $("#bgShow");
     self.timeAndDeltaSpan = $("#timeAndDelta");
 };
 
-self.setTimeAndDeltaText = function() {
+self.setTimeAndDeltaText = function () {
     var timeAndDeltaText = 'Time: ' +
         new Date(self.nsVars.lastBGReadingInfo.date).toLocaleTimeString([],
             { hour: '2-digit', minute: '2-digit' });
@@ -81,13 +91,20 @@ self.setTimeAndDeltaText = function() {
     self.timeAndDeltaDiv.text(timeAndDeltaText);
 };
 
-self.initialize = function() {
+self.initialize = function () {
 
     chrome.storage.sync.get({
-            "extensionVars": null
-        },
-        function(items) {
+        "extensionVars": null,
+        "nsWarningAlarm": null,
+        "nsUrgentAlarm": null
+    },
+        function (items) {
             self.nsVars = items.extensionVars;
+
+            self.nsWarningAlarm = new Audio();
+            self.nsWarningAlarm.src = self.nsVars.warningAlarmSrc;
+            self.nsWarningAlarm.pause();
+            self.nsWarningAlarm.load();
 
             self.getDOMElementReferences();
 
@@ -122,6 +139,10 @@ self.initialize = function() {
                 self.setTimeAndDeltaText();
             }
         });
+
+    chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+        console.log(request.alarm);
+    });
 };
 
 document.addEventListener('DOMContentLoaded', function () {
