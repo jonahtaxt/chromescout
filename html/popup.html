@@ -1,12 +1,7 @@
 <!doctype html>
-<!--
- This page is shown when the extension button is clicked, because the
- "browser_action" field in manifest.json contains the "default_popup" key with
- value "popup.html".
- -->
 <html>
 <head>
-    <title>Getting Started Extension's Popup</title>
+    <title>ChromeScout</title>
     <style>
         body {
             font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
@@ -69,42 +64,49 @@
                 clear: both;
                 width: 100%;
             }
-			
-				#bgData #footer #buttons {
-					border-top: 3px #ffffff dashed;
-					height: 35px;
-					margin-left: 10px;
-					margin-right: 10px;
-					margin-top: 10px;
-				}
-				
-					#bgData #footer #openSettings {
-						background: url('../img/gear.png') no-repeat;
-						background-size: 24px 24px;
-						margin-right: 10px;
-					}
-					
-					#bgData #footer #openFullSite {
-						background: url('../img/logo2.png') no-repeat;
-					}
-			
-					#bgData #footer #openSettings,
-					#bgData #footer #openFullSite {
-						background-position: center;
-						background-color: white;
-						border: 0;
-						border-radius: 50%;
-						width: 40px;
-						height: 40px;
-						float: right;
-						margin-top: 10px;
-						margin-bottom: 10px;
-					}
-					
-					#bgData #footer #openSettings:hover, 
-					#bgData #footer #openFullSite:hover {
-						cursor: pointer;
-					}
+
+                #bgData #footer #buttons {
+                    border-top: 3px #ffffff dashed;
+                    height: 35px;
+                    margin-left: 10px;
+                    margin-right: 10px;
+                    margin-top: 10px;
+                }
+
+                #bgData #footer #openSettings {
+                    background: url('../img/gear.png') no-repeat;
+                    background-size: 24px 24px;
+                    margin-right: 10px;
+                }
+
+                #bgData #footer #openFullSite {
+                    background: url('../img/logo2.png') no-repeat;
+                }
+
+                #bgData #footer #silenceAlarm {
+                    background: url('../img/alarm.png') no-repeat;
+                    margin-right: 10px;
+                }
+
+                #bgData #footer #silenceAlarm.alarmSilenced {
+                    background-image: url('../img/noalarm.png');
+                }
+
+                #bgData #footer #buttons > button {
+                    background-position: center;
+                    background-color: white;
+                    border: 0;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    float: right;
+                    margin-top: 10px;
+                    margin-bottom: 10px;
+                }
+
+                    #bgData #footer #buttons > button:hover {
+                        cursor: pointer;
+                    }
     </style>
 </head>
 <body>
@@ -125,10 +127,11 @@
                 <div id="timeAndDelta"></div>
             </div>
             <div id="footer">
-				<div id="buttons">
-					<button type="button" id="openFullSite" title="Open full NS Site"></button>
-					<button type="button" id="openSettings" title="Open Settings"></button>
-				</div>
+                <div id="buttons">
+                    <button type="button" id="openFullSite" title="Open full NS Site"></button>
+                    <button type="button" id="openSettings" title="Open Settings"></button>
+                    <button type="button" id="silenceAlarm" title="Silence alarm for 15 minutes"></button>
+                </div>
             </div>
         </div>
     </div>
